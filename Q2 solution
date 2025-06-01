@@ -1,0 +1,75 @@
+#include <vector>
+
+class MyHashMap {
+    static const int SIZE = 10007; // A large prime for bucket size
+    struct Node {
+        int k, v;
+        Node* next;
+        Node(int key, int val) : k(key), v(val), next(nullptr) {}
+    };
+    std::vector<Node*> data;
+
+    int hash(int key) {
+        return key % SIZE;
+    }
+
+public:
+    MyHashMap() {
+        data.resize(SIZE, nullptr);
+    }
+
+    void put(int key, int value) {
+        int idx = hash(key);
+        Node* curr = data[idx];
+        if (!curr) {
+            data[idx] = new Node(key, value);
+            return;
+        }
+        Node* prev = nullptr;
+        while (curr) {
+            if (curr->k == key) {
+                curr->v = value;
+                return;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+        prev->next = new Node(key, value);
+    }
+
+    int get(int key) {
+        int idx = hash(key);
+        Node* curr = data[idx];
+        while (curr) {
+            if (curr->k == key) return curr->v;
+            curr = curr->next;
+        }
+        return -1;
+    }
+
+    void remove(int key) {
+        int idx = hash(key);
+        Node* curr = data[idx];
+        Node* prev = nullptr;
+        while (curr) {
+            if (curr->k == key) {
+                if (prev) prev->next = curr->next;
+                else data[idx] = curr->next;
+                delete curr;
+                return;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+    }
+
+    ~MyHashMap() {
+        for (auto head : data) {
+            while (head) {
+                Node* next = head->next;
+                delete head;
+                head = next;
+            }
+        }
+    }
+};

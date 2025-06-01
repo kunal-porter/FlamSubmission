@@ -1,0 +1,72 @@
+#include <unordered_map>
+
+class LRUCache {
+    struct Node {
+        int k, v;
+        Node *p, *n;
+        Node(int key, int val) : k(key), v(val), p(nullptr), n(nullptr) {}
+    };
+
+    int cap;
+    std::unordered_map<int, Node*> m;
+    Node *front, *back;
+
+    void insert(Node* node) {
+        node->n = front->n;
+        node->p = front;
+        front->n->p = node;
+        front->n = node;
+    }
+
+    void detach(Node* node) {
+        node->p->n = node->n;
+        node->n->p = node->p;
+    }
+
+    void touch(Node* node) {
+        detach(node);
+        insert(node);
+    }
+
+public:
+    LRUCache(int capacity) : cap(capacity) {
+        front = new Node(0, 0);
+        back = new Node(0, 0);
+        front->n = back;
+        back->p = front;
+    }
+
+    int get(int key) {
+        if (m.count(key)) {
+            touch(m[key]);
+            return m[key]->v;
+        }
+        return -1;
+    }
+
+    void put(int key, int val) {
+        if (m.count(key)) {
+            m[key]->v = val;
+            touch(m[key]);
+        } else {
+            if (m.size() == cap) {
+                Node* lru = back->p;
+                detach(lru);
+                m.erase(lru->k);
+                delete lru;
+            }
+            Node* node = new Node(key, val);
+            insert(node);
+            m[key] = node;
+        }
+    }
+
+    ~LRUCache() {
+        Node* curr = front;
+        while (curr) {
+            Node* nxt = curr->n;
+            delete curr;
+            curr = nxt;
+        }
+    }
+};
